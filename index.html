@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Study Room Reservation System</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <span class="brand-icon">📚</span>
+        <div>
+          <h1>CampusLib Study Rooms</h1>
+          <p class="brand-tagline">University Central Library • Room Reservation</p>
+        </div>
+      </div>
+      <nav class="nav-actions">
+        <button id="viewRoomsTabBtn" class="nav-btn active" onclick="switchTab('rooms')">Browse Rooms</button>
+        <button id="myBookingsTabBtn" class="nav-btn" onclick="switchTab('my-bookings')">
+          My Bookings <span id="bookingCountBadge" class="badge">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container">
+
+    <!-- TAB 1: BROWSE & BOOK ROOMS -->
+    <section id="roomsTab" class="tab-content active">
+
+      <!-- Quick Notification Banner -->
+      <div class="info-banner">
+        <span>ℹ️ <strong>Rules:</strong> Maximum 2-hour slots per student per day. Please bring your Student ID card.</span>
+      </div>
+
+      <!-- Filters Bar -->
+      <div class="filter-card">
+        <div class="filter-group">
+          <label for="filterDate">Select Date:</label>
+          <input type="date" id="filterDate" onchange="handleDateChange()">
+        </div>
+
+        <div class="filter-group">
+          <label for="filterCapacity">Room Capacity:</label>
+          <select id="filterCapacity" onchange="renderRooms()">
+            <option value="all">All Sizes</option>
+            <option value="small">Small (1 - 2 Persons)</option>
+            <option value="medium">Medium (3 - 5 Persons)</option>
+            <option value="large">Large (6 - 10 Persons)</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filterType">Room Type:</label>
+          <select id="filterType" onchange="renderRooms()">
+            <option value="all">All Types</option>
+            <option value="Quiet Study">Quiet Study</option>
+            <option value="Group Discussion">Group Discussion</option>
+            <option value="Media & Presentation">Media & Presentation</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Available Rooms Grid -->
+      <div class="section-title">
+        <h2>Available Study Rooms</h2>
+        <span id="roomCountText" class="text-muted">Showing available rooms</span>
+      </div>
+
+      <div id="roomsGrid" class="rooms-grid">
+        <!-- Dynamically injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- TAB 2: MY BOOKINGS -->
+    <section id="myBookingsTab" class="tab-content">
+      <div class="section-title">
+        <h2>My Reservations</h2>
+        <p class="text-muted">View or cancel your upcoming study room reservations</p>
+      </div>
+
+      <div id="bookingsList" class="bookings-list">
+        <!-- Dynamically injected via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOOKING MODAL (POPUP DIALOG) -->
+  <div id="bookingModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalRoomName">Reserve Room</h3>
+          <p id="modalRoomDetails" class="text-muted">Room specs</p>
+        </div>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <form id="reservationForm" onsubmit="handleReservationSubmit(event)">
+        <!-- Step 1: Select Time Slot -->
+        <div class="form-section">
+          <h4>1. Select a Time Slot</h4>
+          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 8px;">Selected Date: <strong id="modalSelectedDateText"></strong></p>
+          <div id="timeSlotsGrid" class="time-slots-grid">
+            <!-- Time slot buttons injected via JS -->
+          </div>
+          <p id="slotErrorText" class="error-msg" style="display: none;">Please select an available time slot.</p>
+        </div>
+
+        <!-- Step 2: Student Information -->
+        <div class="form-section">
+          <h4>2. Student Details</h4>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="studentName">Full Name *</label>
+              <input type="text" id="studentName" required placeholder="e.g. Alex Johnson">
+            </div>
+            <div class="form-field">
+              <label for="studentId">Student Roll / ID *</label>
+              <input type="text" id="studentId" required placeholder="e.g. STU-2024-889">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="studentEmail">Campus Email *</label>
+              <input type="email" id="studentEmail" required placeholder="e.g. alex@university.edu">
+            </div>
+            <div class="form-field">
+              <label for="purposeSelect">Purpose of Study</label>
+              <select id="purposeSelect">
+                <option value="Group Assignment">Group Assignment</option>
+                <option value="Exam Preparation">Exam Preparation</option>
+                <option value="Quiet Individual Study">Quiet Individual Study</option>
+                <option value="Project Presentation Practice">Project Presentation Practice</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Reservation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- BOOKING SUCCESS CONFIRMATION PASS MODAL -->
+  <div id="confirmationModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box confirmation-box">
+      <div class="success-icon">✓</div>
+      <h3>Reservation Confirmed!</h3>
+      <p class="text-muted">A confirmation has been saved to your campus study account.</p>
+
+      <!-- Digital Pass Card -->
+      <div id="digitalPass" class="digital-pass">
+        <div class="pass-header">
+          <span class="pass-tag">Campus Study Pass</span>
+          <span id="passRefCode" class="pass-code">#REF-0000</span>
+        </div>
+        <div class="pass-body">
+          <div class="pass-row">
+            <span class="label">Room:</span>
+            <strong id="passRoomName">-</strong>
+          </div>
+          <div class="pass-row">
+            <span class="label">Location:</span>
+            <span id="passRoomFloor">-</span>
+          </div>
+          <div class="pass-row">
+            <span class="label">Date:</span>
+            <strong id="passDate">-</strong>
+          </div>
+          <div class="pass-row">
+            <span class="label">Time:</span>
+            <strong id="passTimeSlot" class="highlight-time">-</strong>
+          </div>
+          <div class="pass-divider"></div>
+          <div class="pass-row">
+            <span class="label">Student:</span>
+            <span id="passStudentName">-</span>
+          </div>
+          <div class="pass-row">
+            <span class="label">ID:</span>
+            <span id="passStudentId">-</span>
+          </div>
+        </div>
+        <div class="pass-footer">
+          <div class="mock-barcode">||| | |||| | ||| ||||| || |||</div>
+          <small>Present this pass at the library front desk upon entry</small>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: center; gap: 12px;">
+        <button class="btn btn-secondary" onclick="printPass()">🖨️ Print Pass</button>
+        <button class="btn btn-primary" onclick="closeConfirmationModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
